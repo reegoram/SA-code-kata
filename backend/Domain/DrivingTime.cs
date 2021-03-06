@@ -6,7 +6,9 @@ namespace SA.Domain
     {
         private int _hour;
         private int _minutes;
-        protected int TotalMinutes => (_hour * 60) + _minutes;
+        public int TotalMinutes => (_hour * 60) + _minutes;
+        public int Hour => _hour;
+        public int Minutes => _minutes;
 
         protected DrivingTime(int hour, int minutes)
         {
