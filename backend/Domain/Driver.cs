@@ -2,7 +2,7 @@ using System;
 
 namespace SA.Domain
 {
-    public class Driver 
+    public class Driver : IEquatable<Driver>
     {
         private string _name;
         public string Name => _name;
@@ -16,5 +16,10 @@ namespace SA.Domain
 
             _name = name;
         }
+
+        // As the only param for the input file is the name
+        // I assumed it has to be an unique name, otherwise
+        // this implementation for Equals have to be redefined.
+        public bool Equals(Driver other) => this.Name == other.Name;
     }
 }

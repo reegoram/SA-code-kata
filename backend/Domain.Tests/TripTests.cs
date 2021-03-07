@@ -27,7 +27,7 @@ namespace SA.Domain.Tests
                     _dan,
                     _startTime,
                     new EndTime(_startTime.Hour, _startTime.Minutes),
-                    0))
+                    -1))
                 .ParamName
                 .Should()
                 .Be("distance");
@@ -62,6 +62,14 @@ namespace SA.Domain.Tests
             Assert.Throws<ArgumentNullException>(
                 () => new Trip(_dan, null, null, 0f),
                 $"A null start time should throw an {nameof(ArgumentNullException)}");
+        }
+
+        [Test] public void TripTimeInMinutesShouldBeEndTimeMinusStartTime()
+        {
+            var endTime = new EndTime(_startTime.Hour, _startTime.Minutes + 5);
+            var trip = new Trip(_dan, _startTime, endTime, 1f);
+
+            trip.TripTimeInMinutes.Should().Be(endTime.TotalMinutes - _startTime.TotalMinutes);
         }
 
         [Test] public void ValidDriverDoesntThrowException()

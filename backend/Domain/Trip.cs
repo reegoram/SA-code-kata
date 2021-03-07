@@ -9,6 +9,15 @@ namespace SA.Domain
         private EndTime _endTime;
         private float _distance;
 
+        public int TripTimeInMinutes 
+        {
+            get
+            {
+                var timeSpan = _endTime.TotalMinutes - _startTime.TotalMinutes;
+                return timeSpan == 0 ? 1 : timeSpan;
+            }
+        }
+        public float Distance => _distance;
         public Driver Driver => _driver;
         public float AverageVelocity 
         {

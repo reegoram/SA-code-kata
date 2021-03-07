@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using SA.Domain;
 
@@ -11,35 +12,43 @@ namespace SA.Application
         private IDriverRepository _driverRepo;
         private ILogger _logger;
         private ITripRepository _tripRepo;
+        private IInputFileImporterRepository _importerRepo;
+        private TripSummary _tripSummary;
 
-        private readonly Dictionary<string, Action<IList<string>>> supportedCommands;
+        private readonly Dictionary<string, Action<IList<string>, Guid>> supportedCommands;
 
         public InputFileProcessor(
             IDriverRepository driverRepository,
+            IInputFileImporterRepository inputFileImporterRepository,
             ILogger logger,
-            ITripRepository tripRepository)
+            ITripRepository tripRepository,
+            TripSummary tripSummary)
         {
             _driverRepo = driverRepository ?? throw new ArgumentNullException(nameof(driverRepository));
+            _importerRepo = inputFileImporterRepository ?? throw new ArgumentNullException(nameof(inputFileImporterRepository));
             _logger = logger ??  throw new ArgumentNullException(nameof(logger));
             _tripRepo = tripRepository ?? throw new ArgumentNullException(nameof(tripRepository));
+            _tripSummary = tripSummary ?? throw new ArgumentNullException(nameof(TripSummary));
 
-            supportedCommands = new Dictionary<string, Action<IList<string>>>
+            supportedCommands = new Dictionary<string, Action<IList<string>, Guid>>
             {
-                { "Driver", param => AddDriver(param) },
-                { "Trip", param => AddTrip(param) }
+                { "Driver", (param, processId) => AddDriver(param, processId) },
+                { "Trip", (param, processId) => AddTrip(param, processId) }
             };
         }
 
-        private void AddDriver(IList<string> name) 
+        private void AddDriver(IList<string> name, Guid processId)
         {
             var driverName = name.FirstOrDefault();
             if (_driverRepo.Exists(driverName))
                 throw new Exception("Driver already exists");
 
-            _driverRepo.Add(driverName ?? throw new ArgumentNullException(nameof(driverName)));
+            _driverRepo.Add(
+                driverName ?? throw new ArgumentNullException(nameof(driverName)), 
+                processId);
         }
 
-        private void AddTrip(IList<string> values)
+        private void AddTrip(IList<string> values, Guid processId)
         {
             if (values.Count() != 4)
                 throw new ArgumentException("Missing arguments");
@@ -77,10 +86,10 @@ namespace SA.Application
 
             var trip = new Trip(driver, startTime, endTime, distance);
             if (trip.AverageVelocity >= 5 && trip.AverageVelocity <= 100)
-                _tripRepo.Add(trip);
+                _tripRepo.Add(trip, processId);
         }
 
-        public void NewBatch(string data, Guid guid) 
+        public void NewBatch(string data, Guid processId) 
         {
             var instructions = data.Split(
                     new[] { Environment.NewLine },
@@ -93,19 +102,27 @@ namespace SA.Application
 
                 if (command is null)
                 {
-                    _logger.Log(LogLevel.Error, "Invalid command", instruction);
+                    _logger.Log(LogLevel.Error, 
+                        "Invalid command", 
+                        new { ProcessId = processId, Instruction = instruction });
                     continue;
                 }
 
                 if (arguments is null)
                 {
-                    _logger.Log(LogLevel.Error, "Missing arguments", instruction);
+                    _logger.Log(
+                        LogLevel.Error, 
+                        "Missing arguments", 
+                        new { ProcessId = processId, Instruction = instruction });
                     continue;
                 }
 
                 if (!supportedCommands.ContainsKey(command))
                 {
-                    _logger.Log(LogLevel.Error, "Invalid command", command);
+                    _logger.Log(
+                        LogLevel.Error, 
+                        "Invalid command", 
+                        new { ProcessId = processId, Command = command});
                     continue;
                 }
 
@@ -113,13 +130,31 @@ namespace SA.Application
 
                 try 
                 {
-                    function.Invoke(arguments);
+                    function.Invoke(arguments, processId);
                 }
                 catch (Exception ex)
                 {
-                    _logger.Log(LogLevel.Error, ex.Message, ex);
+                    _logger.Log(
+                        LogLevel.Error, 
+                        ex.Message,
+                        new { ProcessId = processId, Exception = ex });
                     continue;
                 }
+            }
+
+            try 
+            {
+                _importerRepo.SaveComputing(processId, DateTime.Now);
+                _tripSummary.ComputeSummary(processId);
+                _importerRepo.SaveComplete(processId, DateTime.Now);
+            }
+            catch(Exception ex)
+            {
+                _logger.Log(
+                    LogLevel.Error, 
+                    ex.Message,
+                    new { ProcessId = processId, Exception = ex });
+                _importerRepo.SaveError(processId, DateTime.Now, ex.Message);
             }
         }
     }
