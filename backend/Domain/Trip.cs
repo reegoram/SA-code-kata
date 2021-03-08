@@ -30,6 +30,8 @@ namespace SA.Domain
                 return _distance / (timespan == 0 ? 1 : timespan) * 60;
             }
         }
+        public StartTime StartTime => _startTime;
+        public EndTime EndTime => _endTime;
 
         private Trip() { }
 

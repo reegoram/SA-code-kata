@@ -1,7 +1,9 @@
 using SA.Domain;
 using System;
+using System.Linq;
 using Moq;
 using NUnit.Framework;
+using System.Collections.Generic;
 
 namespace SA.Application.Tests
 {
@@ -13,7 +15,7 @@ namespace SA.Application.Tests
         private readonly StartTime _starTime = new StartTime(10, 40);
         private Mock<ITripRepository> _mockITripRepository;
         private Mock<ITripSummaryRepository> _mockITripSummaryRepository;
-        private TripSummary _tripSummary;
+        private TripSummaryComputation _tripSummary;
 
         [SetUp] public void Initialize()
         {
@@ -34,28 +36,19 @@ namespace SA.Application.Tests
                                         new EndTime(_endTime.Hour + 1, _endTime.Minutes),
                                         20f)
                                 });
-            _mockITripSummaryRepository.Setup(x =>
-                x.Add(It.IsAny<Driver>(),
-                      It.IsAny<double>(),
-                      It.IsAny<double>(),
-                      It.IsAny<Guid>()));
+            _mockITripSummaryRepository.Setup(x => 
+                x.AddRange(It.IsAny<IEnumerable<TripSummary>>()));
 
-            _tripSummary = new TripSummary(
+            _tripSummary = new TripSummaryComputation(
                 _mockITripRepository.Object,
                 _mockITripSummaryRepository.Object);
             _tripSummary.ComputeSummary(_processId);
 
             _mockITripSummaryRepository.Verify(x =>
-                x.Add(It.IsAny<Driver>(),
-                      It.IsAny<double>(),
-                      It.IsAny<double>(),
-                      It.IsAny<Guid>()),
-                Times.Once);
-            _mockITripSummaryRepository.Verify(x => 
-                x.Add(_dan,
-                      40f,
-                      60f,
-                      _processId), 
+                x.AddRange(It.IsAny<IEnumerable<TripSummary>>()), Times.Once);
+            _mockITripSummaryRepository.Verify(x =>
+                x.AddRange(It.Is<IEnumerable<TripSummary>>(
+                    t => t.All(d => d.Driver == _dan && d.MilesPerHour == 60))),
                 Times.Once);
         }
     }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using SA.Domain;
 
 namespace SA.Application
@@ -8,5 +9,6 @@ namespace SA.Application
         void Add(string driverName, Guid importId);
         bool Exists(string driverName);
         Driver Find(string driverName);
+        IList<Driver> GetByProcessId(Guid processId);
     }
 }

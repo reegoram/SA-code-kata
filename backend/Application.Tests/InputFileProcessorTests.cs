@@ -15,7 +15,7 @@ namespace SA.Application.Tests
         Mock<ILogger> _mockLogger;
         Mock<IDriverRepository> _mockDriverRepository;
         Mock<ITripRepository> _mockTripRepository;
-        Mock<TripSummary> _mockTripSummary;
+        Mock<TripSummaryComputation> _mockTripSummary;
         Mock<ITripSummaryRepository> _mockTripSummaryRepo;
 
         [Test] public void IfTripIsGreaterThan100MPHDontAddItToRepository()
@@ -25,7 +25,7 @@ namespace SA.Application.Tests
             _mockLogger = new Mock<ILogger>();
             _mockTripRepository = new Mock<ITripRepository>();
             _mockTripSummaryRepo = new Mock<ITripSummaryRepository>();
-            _mockTripSummary = new Mock<TripSummary>(
+            _mockTripSummary = new Mock<TripSummaryComputation>(
                 _mockTripRepository.Object,
                 _mockTripSummaryRepo.Object);
 
@@ -62,7 +62,7 @@ namespace SA.Application.Tests
             _mockLogger = new Mock<ILogger>();
             _mockTripRepository = new Mock<ITripRepository>();
             _mockTripSummaryRepo = new Mock<ITripSummaryRepository>();
-            _mockTripSummary = new Mock<TripSummary>(
+            _mockTripSummary = new Mock<TripSummaryComputation>(
                 _mockTripRepository.Object,
                 _mockTripSummaryRepo.Object);
 
@@ -98,7 +98,7 @@ namespace SA.Application.Tests
             _mockLogger = new Mock<ILogger>();
             _mockTripRepository = new Mock<ITripRepository>();
             _mockTripSummaryRepo = new Mock<ITripSummaryRepository>();
-            _mockTripSummary = new Mock<TripSummary>(
+            _mockTripSummary = new Mock<TripSummaryComputation>(
                 _mockTripRepository.Object,
                 _mockTripSummaryRepo.Object);
 
@@ -124,7 +124,7 @@ namespace SA.Application.Tests
             _mockLogger = new Mock<ILogger>();
             _mockTripRepository = new Mock<ITripRepository>();
             _mockTripSummaryRepo = new Mock<ITripSummaryRepository>();
-            _mockTripSummary = new Mock<TripSummary>(
+            _mockTripSummary = new Mock<TripSummaryComputation>(
                 _mockTripRepository.Object,
                 _mockTripSummaryRepo.Object);
 

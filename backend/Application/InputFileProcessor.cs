@@ -1,19 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using SA.Domain;
 
 namespace SA.Application
 {
-    public class InputFileProcessor
+    public class InputFileProcessor : IInputFileProcessor
     {
         private IDriverRepository _driverRepo;
         private ILogger _logger;
         private ITripRepository _tripRepo;
         private IInputFileImporterRepository _importerRepo;
-        private TripSummary _tripSummary;
+        private TripSummaryComputation _tripSummary;
 
         private readonly Dictionary<string, Action<IList<string>, Guid>> supportedCommands;
 
@@ -22,13 +21,13 @@ namespace SA.Application
             IInputFileImporterRepository inputFileImporterRepository,
             ILogger logger,
             ITripRepository tripRepository,
-            TripSummary tripSummary)
+            TripSummaryComputation tripSummary)
         {
             _driverRepo = driverRepository ?? throw new ArgumentNullException(nameof(driverRepository));
             _importerRepo = inputFileImporterRepository ?? throw new ArgumentNullException(nameof(inputFileImporterRepository));
             _logger = logger ??  throw new ArgumentNullException(nameof(logger));
             _tripRepo = tripRepository ?? throw new ArgumentNullException(nameof(tripRepository));
-            _tripSummary = tripSummary ?? throw new ArgumentNullException(nameof(TripSummary));
+            _tripSummary = tripSummary ?? throw new ArgumentNullException(nameof(TripSummaryComputation));
 
             supportedCommands = new Dictionary<string, Action<IList<string>, Guid>>
             {
@@ -144,9 +143,9 @@ namespace SA.Application
 
             try 
             {
-                _importerRepo.SaveComputing(processId, DateTime.Now);
+                _importerRepo.SaveStatus(processId, ImporterStatus.Computing);
                 _tripSummary.ComputeSummary(processId);
-                _importerRepo.SaveComplete(processId, DateTime.Now);
+                _importerRepo.SaveStatus(processId, ImporterStatus.Completed);
             }
             catch(Exception ex)
             {
@@ -154,7 +153,7 @@ namespace SA.Application
                     LogLevel.Error, 
                     ex.Message,
                     new { ProcessId = processId, Exception = ex });
-                _importerRepo.SaveError(processId, DateTime.Now, ex.Message);
+                _importerRepo.SaveStatus(processId, ImporterStatus.Fail, ex.Message);
             }
         }
     }

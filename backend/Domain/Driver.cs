@@ -21,5 +21,10 @@ namespace SA.Domain
         // I assumed it has to be an unique name, otherwise
         // this implementation for Equals have to be redefined.
         public bool Equals(Driver other) => this.Name == other.Name;
+
+        public override bool Equals(object obj)
+            => (obj is Driver) && (this.Equals((Driver) obj));
+
+        public override int GetHashCode() => _name.GetHashCode();
     }
 }
