@@ -12,7 +12,7 @@ namespace SA.Application.Tests
         private readonly Driver _dan = new Driver(DRIVER_NAME);
         InputFileProcessor _processor;
         Mock<IInputFileImporterRepository> _mockImporterRepo;
-        Mock<ILogger> _mockLogger;
+        Mock<ILogger<InputFileProcessor>> _mockLogger;
         Mock<IDriverRepository> _mockDriverRepository;
         Mock<ITripRepository> _mockTripRepository;
         Mock<TripSummaryComputation> _mockTripSummary;
@@ -22,7 +22,7 @@ namespace SA.Application.Tests
         {
             _mockDriverRepository = new Mock<IDriverRepository>();
             _mockImporterRepo = new Mock<IInputFileImporterRepository>();
-            _mockLogger = new Mock<ILogger>();
+            _mockLogger = new Mock<ILogger<InputFileProcessor>>();
             _mockTripRepository = new Mock<ITripRepository>();
             _mockTripSummaryRepo = new Mock<ITripSummaryRepository>();
             _mockTripSummary = new Mock<TripSummaryComputation>(
@@ -59,7 +59,7 @@ namespace SA.Application.Tests
         {
             _mockDriverRepository = new Mock<IDriverRepository>();
             _mockImporterRepo = new Mock<IInputFileImporterRepository>();
-            _mockLogger = new Mock<ILogger>();
+            _mockLogger = new Mock<ILogger<InputFileProcessor>>();
             _mockTripRepository = new Mock<ITripRepository>();
             _mockTripSummaryRepo = new Mock<ITripSummaryRepository>();
             _mockTripSummary = new Mock<TripSummaryComputation>(
@@ -95,7 +95,7 @@ namespace SA.Application.Tests
         {
             _mockDriverRepository = new Mock<IDriverRepository>();
             _mockImporterRepo = new Mock<IInputFileImporterRepository>();
-            _mockLogger = new Mock<ILogger>();
+            _mockLogger = new Mock<ILogger<InputFileProcessor>>();
             _mockTripRepository = new Mock<ITripRepository>();
             _mockTripSummaryRepo = new Mock<ITripSummaryRepository>();
             _mockTripSummary = new Mock<TripSummaryComputation>(
@@ -121,7 +121,7 @@ namespace SA.Application.Tests
         {
             _mockDriverRepository = new Mock<IDriverRepository>();
             _mockImporterRepo = new Mock<IInputFileImporterRepository>();
-            _mockLogger = new Mock<ILogger>();
+            _mockLogger = new Mock<ILogger<InputFileProcessor>>();
             _mockTripRepository = new Mock<ITripRepository>();
             _mockTripSummaryRepo = new Mock<ITripSummaryRepository>();
             _mockTripSummary = new Mock<TripSummaryComputation>(

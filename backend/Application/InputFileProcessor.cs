@@ -9,7 +9,7 @@ namespace SA.Application
     public class InputFileProcessor : IInputFileProcessor
     {
         private IDriverRepository _driverRepo;
-        private ILogger _logger;
+        private ILogger<InputFileProcessor> _logger;
         private ITripRepository _tripRepo;
         private IInputFileImporterRepository _importerRepo;
         private TripSummaryComputation _tripSummary;
@@ -19,7 +19,7 @@ namespace SA.Application
         public InputFileProcessor(
             IDriverRepository driverRepository,
             IInputFileImporterRepository inputFileImporterRepository,
-            ILogger logger,
+            ILogger<InputFileProcessor> logger,
             ITripRepository tripRepository,
             TripSummaryComputation tripSummary)
         {

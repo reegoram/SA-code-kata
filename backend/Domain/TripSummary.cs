@@ -14,6 +14,7 @@ namespace SA.Domain
         public Driver Driver => _driver;
         public int Miles => _miles;
         public int MilesPerHour => _milesPerHour;
+        public Guid ImportId => _importId;
 
         public TripSummary(
             Guid importId, 

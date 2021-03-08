@@ -8,6 +8,7 @@ using SA.Application;
 
 namespace SA.API
 {
+    [ApiController, Route("api/[controller]")]
     public class BatchImportsController : Controller
     {
         private IInputFileProcessor _inputFileProcessor;
@@ -31,9 +32,9 @@ namespace SA.API
                 ?? throw new ArgumentNullException(nameof(tripSummaryRepository));
         }
 
-        [HttpGet] public async Task<ActionResult> Report(Guid processId)
+        [HttpGet("{id}")] public async Task<ActionResult> Report(Guid id)
         {
-            var importerStory = _importerRepo.Find(processId);
+            var importerStory = _importerRepo.Find(id);
 
             if (!importerStory.Any())
                 return NotFound(new
@@ -58,10 +59,10 @@ namespace SA.API
                     break;
                 case ImporterStatus.Completed:        
                     // Retrieve driver registered in this batch
-                    var drivers = _driverRepo.GetByProcessId(processId);
+                    var drivers = _driverRepo.GetByProcessId(id);
 
                     // Retrieves the trips stats per driver
-                    var trips = _tripSummaryRepo.GetAllByProcessId(processId);
+                    var trips = _tripSummaryRepo.GetAllByProcessId(id);
 
                     data = drivers.GroupJoin(
                             trips,

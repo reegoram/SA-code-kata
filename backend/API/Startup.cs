@@ -1,15 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using LiteDB;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using SA.Application;
+using SA.Infrastructure.Persistence;
 
 namespace SA.API
 {
@@ -26,6 +22,14 @@ namespace SA.API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+
+            services.AddSingleton((LiteDatabase)new LiteDatabase("data.db"));
+            services.AddSingleton<IDriverRepository, DriverRepository>();
+            services.AddSingleton<IInputFileImporterRepository, InputFileImporterRepository>();
+            services.AddSingleton<ITripRepository, TripRepository>();
+            services.AddSingleton<ITripSummaryRepository, TripSummaryRepository>();
+            services.AddTransient<IInputFileProcessor, InputFileProcessor>();
+            services.AddTransient<TripSummaryComputation>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
