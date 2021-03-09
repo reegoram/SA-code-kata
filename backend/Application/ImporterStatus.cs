@@ -5,6 +5,7 @@ namespace SA.Application
         Started,
         Computing,
         Completed,
-        Fail
+        Fail,
+        NotProcessed
     }
 }

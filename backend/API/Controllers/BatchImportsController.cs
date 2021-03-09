@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using LiteDB;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SA.Application;
@@ -32,7 +33,21 @@ namespace SA.API
                 ?? throw new ArgumentNullException(nameof(tripSummaryRepository));
         }
 
-        [HttpGet("{id}")] public async Task<ActionResult> Report(Guid id)
+        [HttpGet("logs")] public ActionResult GetLogs()
+            => Ok(new LiteDatabase("log.db").GetCollection("log").Query());
+
+        [HttpGet] public ActionResult GetAll()
+        {
+            var importHistory = _importerRepo.GetAll();
+
+            return Ok(new
+            {
+                status = "success",
+                data = importHistory
+            });
+        }
+
+        [HttpGet("{id}")] public ActionResult Report(Guid id)
         {
             var importerStory = _importerRepo.Find(id);
 
@@ -74,8 +89,12 @@ namespace SA.API
                                 Miles = t.Any() ? t.Sum(x => x.Miles) : (int?)null,
                                 MilesPerHour = t.Any() ? t.Sum(x => x.MilesPerHour) : (int?)null
                             })
+                        .OrderByDescending(x => x.Miles)
                         .ToList();
 
+                    break;
+                case ImporterStatus.NotProcessed:
+                    data = "File is not valid or has not valid data";
                     break;
                 default:
                     throw new NotImplementedException("Unsupported scenario");
@@ -88,9 +107,11 @@ namespace SA.API
             });
         }
 
-        [HttpPost] public async Task<ActionResult> Upload(IFormFile file)
+        [HttpPost] public async Task<ActionResult> Upload([FromForm] IFormCollection fileCollection)
         {
-            if (file is null || file.Length == 0)
+            var file = fileCollection?.Files.FirstOrDefault();
+
+            if (file is null)
                 return BadRequest(new 
                 {
                     status = "fail",

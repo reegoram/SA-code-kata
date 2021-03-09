@@ -26,6 +26,18 @@ namespace SA.Infrastructure.Persistence
                                  .ToList()
                                  .ToDictionary(x => x.Status, x => x.DateTime);
 
+        public IDictionary<string, DateTime> GetAll()
+            => _importsCollection.Query()
+                                 .Select(x => new
+                                 {
+                                     ImportId = x["ImportId"].AsGuid,
+                                     Status = x["Status"].AsInt32,
+                                     CreateDate = x["CreateDate"].AsDateTime
+                                 })
+                                 .ToList()
+                                 .Where(x => x.Status == (int)ImporterStatus.Started)
+                                 .ToDictionary(x => x.ImportId.ToString(), x => x.CreateDate);
+
         public void SaveStatus(Guid processId, ImporterStatus status, string message = null)
         {
             var importStatus = new BsonDocument

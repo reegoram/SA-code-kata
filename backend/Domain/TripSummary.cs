@@ -4,9 +4,9 @@ using System.Linq;
 
 namespace SA.Domain
 {
-    public class TripSummary
+    public partial class TripSummary
     {
-        private Driver _driver;
+        protected Driver _driver;
         private Guid _importId;
         private int _miles;
         private int _milesPerHour;

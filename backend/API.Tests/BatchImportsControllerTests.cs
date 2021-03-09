@@ -19,10 +19,12 @@ namespace SA.API.Tests
         private BatchImportsController _batchController;
         private Mock<IDriverRepository> _mockDriverRepo;
         private Mock<IFormFile> _mockFormFile;
+        private Mock<IFormCollection> _mockFormCollection;
         private Mock<IInputFileImporterRepository> _mockImporterRepo;
         private Mock<IInputFileProcessor> _mockInputFileProcessor;
         private Mock<ITripSummaryRepository> _mockTripSummaryRepo;
         private Guid _processId;
+        private FormFileCollection _formFileCollection;
 
         [SetUp] public void Initialize()
         {
@@ -31,6 +33,8 @@ namespace SA.API.Tests
             _mockImporterRepo = new Mock<IInputFileImporterRepository>();
             _mockInputFileProcessor = new Mock<IInputFileProcessor>();
             _mockTripSummaryRepo = new Mock<ITripSummaryRepository>();
+            _mockFormCollection = new Mock<IFormCollection>();
+            _formFileCollection = new FormFileCollection();
 
             _mockImporterRepo.Setup(i => 
                 i.SaveStatus(
@@ -42,20 +46,25 @@ namespace SA.API.Tests
                 _mockDriverRepo.Object,
                 _mockInputFileProcessor.Object,
                 _mockImporterRepo.Object,
-                _mockTripSummaryRepo.Object);
-
+                _mockTripSummaryRepo.Object)
+            {
+                ControllerContext = new ControllerContext
+                {
+                    HttpContext = new DefaultHttpContext()
+                }
+            };
             _processId = Guid.NewGuid();
         }
 
         [Test] public async Task EmptyFileProvidedReturnsOKWithMessageNothingToProcess()
         {
-            var ms = new MemoryStream();
+             var ms = new MemoryStream();
             var writer = new StreamWriter(ms);
             writer.Write(string.Join("", new [] 
             {
                 Environment.NewLine,
                 Environment.NewLine,
-                Environment.NewLine,
+                Environment.NewLine, 
                 string.Empty
             }));
             writer.Flush();
@@ -66,7 +75,16 @@ namespace SA.API.Tests
             _mockFormFile.Setup(_ => _.Length)
                          .Returns(ms.Length);
 
-            var response = await _batchController.Upload(_mockFormFile.Object);
+            _mockInputFileProcessor.Setup(
+                _ => _.NewBatch(It.IsAny<string>(), It.IsAny<Guid>()));
+            var formFileCollection = new FormFileCollection();
+            formFileCollection.Add(_mockFormFile.Object);
+
+            var m = new Mock<IFormCollection>();
+            m.SetupGet(x => x.Files)
+             .Returns(formFileCollection);
+
+            var response = await _batchController.Upload(m.Object);
 
             response.Should().BeOfType<OkObjectResult>();
             var content = (response as OkObjectResult).Value;
@@ -84,9 +102,6 @@ namespace SA.API.Tests
 
         [Test] public async Task NoFileProvidedReturnsBadRequest()
         {
-            _mockFormFile.Setup(x => x.Length)
-                         .Returns(0);
-
             var response = await _batchController.Upload(null);
             response.Should().BeOfType<BadRequestObjectResult>();
             var content = (response as BadRequestObjectResult).Value;
@@ -101,7 +116,9 @@ namespace SA.API.Tests
                    .Should()
                    .Be("File not received");
 
-            response = await _batchController.Upload(_mockFormFile.Object);
+            _mockFormCollection.SetupGet(x => x.Files)
+                               .Returns(_formFileCollection);
+            response = await _batchController.Upload(_mockFormCollection.Object);
             response.Should().BeOfType<BadRequestObjectResult>();
             content = (response as BadRequestObjectResult).Value;
             content.GetType()
@@ -116,12 +133,12 @@ namespace SA.API.Tests
                    .Be("File not received");
         }
     
-        [Test] public async Task ProcessIdNotInDatabaseReturnsNotFound()
+        [Test] public void ProcessIdNotInDatabaseReturnsNotFound()
         {
             _mockImporterRepo.Setup(i => i.Find(_processId))
                              .Returns(new Dictionary<ImporterStatus, DateTime>());
 
-            var response = await _batchController.Report(_processId);
+            var response = _batchController.Report(_processId);
             response.Should().BeOfType<NotFoundObjectResult>();
 
             var content = (response as NotFoundObjectResult).Value;
@@ -137,7 +154,7 @@ namespace SA.API.Tests
                    .Be("Not found");
         }
 
-        [Test] public async Task ProcessStartedButHasntBeenComputedYetReturnsOkWithAnalyzedMessage()
+        [Test] public void ProcessStartedButHasntBeenComputedYetReturnsOkWithAnalyzedMessage()
         {
             _mockImporterRepo.Setup(i => i.Find(_processId))
                              .Returns(new Dictionary<ImporterStatus, DateTime>()
@@ -145,7 +162,7 @@ namespace SA.API.Tests
                                 { ImporterStatus.Started, DateTime.Now }
                              });
 
-            var response = await _batchController.Report(_processId);
+            var response = _batchController.Report(_processId);
             response.Should().BeOfType<OkObjectResult>();
 
             var content = (response as OkObjectResult).Value;
@@ -161,7 +178,7 @@ namespace SA.API.Tests
                    .Be("File is being analyzed");
         }
 
-        [Test] public async Task ProcessHasNotBeenComputedYetReturnsOkWithComputingMessage()
+        [Test] public void ProcessHasNotBeenComputedYetReturnsOkWithComputingMessage()
         {
             _mockImporterRepo.Setup(i => i.Find(_processId))
                              .Returns(new Dictionary<ImporterStatus, DateTime>()
@@ -170,7 +187,7 @@ namespace SA.API.Tests
                                 { ImporterStatus.Computing, DateTime.Now },
                              });
 
-            var response = await _batchController.Report(_processId);
+            var response = _batchController.Report(_processId);
             response.Should().BeOfType<OkObjectResult>();
 
             var content = (response as OkObjectResult).Value;
@@ -186,7 +203,7 @@ namespace SA.API.Tests
                    .Be("File is being computed");
         }
 
-        [Test] public async Task ProcessHasFailedReturnsOkWithFailMessage()
+        [Test] public void ProcessHasFailedReturnsOkWithFailMessage()
         {
             _mockImporterRepo.Setup(i => i.Find(_processId))
                              .Returns(new Dictionary<ImporterStatus, DateTime>()
@@ -196,7 +213,7 @@ namespace SA.API.Tests
                                 { ImporterStatus.Fail, DateTime.Now }
                              });
 
-            var response = await _batchController.Report(_processId);
+            var response = _batchController.Report(_processId);
             response.Should().BeOfType<OkObjectResult>();
 
             var content = (response as OkObjectResult).Value;
@@ -212,7 +229,7 @@ namespace SA.API.Tests
                    .Be("File computing has been aborted due to an unexpected error");
         }
 
-        [Test] public async Task ProcessCompletedReturnsOkWithTripSummary()
+        [Test] public void ProcessCompletedReturnsOkWithTripSummary()
         {
             var dan = new Driver("Dan");
             var alex = new Driver("Alex");
@@ -237,7 +254,7 @@ namespace SA.API.Tests
                                 { ImporterStatus.Completed, DateTime.Now }
                              });
 
-            var response = await _batchController.Report(_processId);
+            var response = _batchController.Report(_processId);
             response.Should().BeOfType<OkObjectResult>();
 
             var content = (response as OkObjectResult).Value;
@@ -279,8 +296,14 @@ namespace SA.API.Tests
 
             _mockInputFileProcessor.Setup(
                 _ => _.NewBatch(It.IsAny<string>(), It.IsAny<Guid>()));
+            var formFileCollection = new FormFileCollection();
+            formFileCollection.Add(_mockFormFile.Object);
 
-            var response = await _batchController.Upload(_mockFormFile.Object);
+            var m = new Mock<IFormCollection>();
+            m.SetupGet(x => x.Files)
+             .Returns(formFileCollection);
+
+            var response = await _batchController.Upload(m.Object);
             response.Should().BeOfType<OkObjectResult>();
             var content = (response as OkObjectResult).Value;
             content.GetType()

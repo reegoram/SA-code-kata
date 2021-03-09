@@ -39,7 +39,7 @@ namespace SA.Application
         private void AddDriver(IList<string> name, Guid processId)
         {
             var driverName = name.FirstOrDefault();
-            if (_driverRepo.Exists(driverName))
+            if (_driverRepo.Exists(driverName, processId))
                 throw new Exception("Driver already exists");
 
             _driverRepo.Add(
@@ -79,7 +79,7 @@ namespace SA.Application
                 throw new ArgumentException("Invalid end time");
             endTime = new EndTime(hour, minutes);
 
-            var driver = _driverRepo.Find(values[0]);
+            var driver = _driverRepo.Find(values[0], processId);
             if (driver is null)
                 throw new ArgumentException($"Driver { values[0] } does not exist");
 
@@ -144,8 +144,10 @@ namespace SA.Application
             try 
             {
                 _importerRepo.SaveStatus(processId, ImporterStatus.Computing);
-                _tripSummary.ComputeSummary(processId);
-                _importerRepo.SaveStatus(processId, ImporterStatus.Completed);
+                if (_tripSummary.ComputeSummary(processId))
+                    _importerRepo.SaveStatus(processId, ImporterStatus.Completed);
+                else
+                    _importerRepo.SaveStatus(processId, ImporterStatus.NotProcessed, "No data to add");
             }
             catch(Exception ex)
             {

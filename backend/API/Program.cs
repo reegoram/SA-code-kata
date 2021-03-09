@@ -9,8 +9,8 @@ namespace SA.API
         public static void Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
-                                .MinimumLevel.Error()
-                                .WriteTo.File("errors.log")
+                                .MinimumLevel.Debug()
+                                .WriteTo.File("error.log")
                                 .CreateLogger();
             CreateHostBuilder(args).Build().Run();
         }

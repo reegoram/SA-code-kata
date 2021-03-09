@@ -17,7 +17,7 @@ namespace SA.Application
             _tripSummaryRepo = tripSummaryRepository;
         }
 
-        public void ComputeSummary(Guid processId)
+        public bool ComputeSummary(Guid processId)
         {
             var trips = _tripRepo.Find(processId);
             var tripsPerDriver = trips.GroupBy(
@@ -29,7 +29,10 @@ namespace SA.Application
                         .ToList(),
                     v.Sum(t => t.Distance)));
 
-            _tripSummaryRepo.AddRange(tripsPerDriver);
+            if (tripsPerDriver.Any())
+                _tripSummaryRepo.AddRange(tripsPerDriver);
+
+            return tripsPerDriver.Any();
         }
     }
 }

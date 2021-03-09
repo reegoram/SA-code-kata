@@ -1,0 +1,31 @@
+main
+    height: 100%
+    padding: 1rem
+    padding-top: 3em
+    padding-bottom: 1em
+
+.loader-mask
+    align-items: center
+    background: #0000008f
+    bottom: 0
+    display: none
+    flex-direction: column
+    height: 100%
+    justify-content: center
+    left: 0
+    position: fixed
+    width: 100%
+
+.spinner 
+    border: 4px solid rgba(0, 0, 0, .1)
+    width: 36px
+    height: 36px
+    border-radius: 50%
+    border-left-color: rgb(0, 116, 217)
+    animation: spin 1s ease infinite
+
+@keyframes spin
+    0%
+        transform: rotate(0deg)
+    100%
+        transform: rotate(360deg)

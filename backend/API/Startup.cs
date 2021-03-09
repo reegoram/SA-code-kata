@@ -21,6 +21,15 @@ namespace SA.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(options =>
+            {
+                options.AddPolicy("clientApp",
+                    builder =>
+                    {
+                        builder.WithOrigins(Configuration["AllowedOrigin"] ?? "http://localhost:4200");
+                    });
+            });
+
             services.AddControllers();
 
             services.AddSingleton((LiteDatabase)new LiteDatabase("data.db"));
@@ -43,6 +52,8 @@ namespace SA.API
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors("clientApp");
 
             app.UseAuthorization();
 

@@ -137,7 +137,7 @@ namespace SA.Application.Tests
 
             _mockDriverRepository.Setup(x => 
                 x.Add(It.IsAny<string>(), It.IsAny<Guid>()));
-            _mockDriverRepository.Setup(x => x.Find(DRIVER_NAME))
+            _mockDriverRepository.Setup(x => x.Find(DRIVER_NAME, It.IsAny<Guid>()))
                                 .Returns(_dan);
             _processor.NewBatch(
                 string.Join(
