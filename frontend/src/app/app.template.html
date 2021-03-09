@@ -1,0 +1,15 @@
+<main>
+    <nav>
+        <a href="#" class="brand">
+            <img src="./assets/logo.png" alt="Logo" class="logo">
+            <span>Trip Summary</span>
+        </a>
+        <div class="menu">
+            <SA-file-uploader [toggleSpinner]="toggleSpinner"></SA-file-uploader>
+        </div>
+    </nav>
+    <router-outlet></router-outlet>
+    <aside class="loader-mask">
+        <div class="spinner"></div>
+    </aside>
+</main>

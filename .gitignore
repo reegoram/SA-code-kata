@@ -1,0 +1,8 @@
+**/.vscode
+
+# Ignore .NET build files
+**/bin/**
+**/obj/**
+
+**/*.db
+**/*.log
